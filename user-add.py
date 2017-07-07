@@ -10,8 +10,8 @@ from getpass import getpass
 from config import DB_PATH, PASSWORD_LENGTH_MIN, HASH_ALGORITHM
 
 
-if len(sys.argv) != 2:
-    print("USAGE: %s <username>" % sys.argv[0])
+if len(sys.argv) != 3:
+    print("USAGE: %s <username> <yubi_public_id>" % sys.argv[0])
     sys.exit(1)
 if not os.path.exists(DB_PATH):
     print("ERROR: Database not found: %s" % DB_PATH)
@@ -22,6 +22,7 @@ if hash_func is None:
     sys.exit(2)
 
 username = sys.argv[1]
+yubi_public_id = sys.argv[2]
 password_ok = False
 while not password_ok:
     password = getpass()
@@ -39,7 +40,7 @@ password = hash_func(password.encode("UTF-8")).hexdigest()
 db = sqlite3.connect(DB_PATH)
 cursor = db.cursor()
 try:
-    cursor.execute("INSERT INTO users VALUES (?, ?);", (username, password))
+    cursor.execute("INSERT INTO users VALUES (?, ?, ?);", (username, password, yubi_public_id))
 except sqlite3.IntegrityError:
     print("ERROR: user '%s' already exists" % username)
     sys.exit(2)
