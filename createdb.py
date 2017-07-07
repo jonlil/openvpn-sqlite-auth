@@ -14,5 +14,5 @@ if os.path.exists(DB_PATH):
 
 db = sqlite3.connect(DB_PATH)
 cursor = db.cursor()
-cursor.execute("CREATE TABLE users (username text PRIMARY KEY, password text);")
+cursor.execute("CREATE TABLE users (username text PRIMARY KEY, password text, yubi_public_id text);")
 print("* Users database created at %s" % DB_PATH)
