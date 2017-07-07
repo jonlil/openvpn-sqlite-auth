@@ -19,10 +19,9 @@ conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
 yubi_otp = os.environ['password'][-44:]
-yubi_public_id = yubi_otp[:12]
 sent_password = os.environ['password'][:-44]
 
-cursor.execute('SELECT * FROM users WHERE username = ? AND yubi_public_id = ?;', (os.environ['username'], yubi_public_id))
+cursor.execute('SELECT username, password FROM users WHERE username = ? AND yubi_public_id = ?;', (os.environ['username'], yubi_otp[:12], ))
 result = cursor.fetchone()
 if result is None:
     sys.exit(1)
