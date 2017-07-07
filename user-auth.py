@@ -5,19 +5,32 @@ import hashlib
 import os
 import sqlite3
 import sys
+from yubico_client import Yubico
 
-from config import DB_PATH, HASH_ALGORITHM
+
+from config import DB_PATH, HASH_ALGORITHM, YUBICO_CLIENT_ID, YUBICO_SECRET
+
+
+yubi_client = Yubico(YUBICO_CLIENT_ID, YUBICO_SECRET)
 
 
 hash_func = getattr(hashlib, HASH_ALGORITHM)
 conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
-cursor.execute('SELECT * FROM users WHERE username = ?;', (os.environ['username'],))
+yubi_otp = os.environ['password'][-44:]
+yubi_public_id = yubi_otp[:12]
+sent_password = os.environ['password'][:-44]
+
+cursor.execute('SELECT * FROM users WHERE username = ? AND yubi_public_id = ?;', (os.environ['username'], yubi_public_id))
 result = cursor.fetchone()
 if result is None:
     sys.exit(1)
 username, password = result
-if hash_func(os.environ['password'].encode("utf-8")).hexdigest() != password:
+if hash_func(sent_password.encode("utf-8")).hexdigest() != password:
     sys.exit(1)
+
+if not yubi_client.verify(yubi_otp):
+    sys.exit(1)
+
 sys.exit(0)
